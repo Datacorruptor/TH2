@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.335">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2023-05-13">
+
+<title>Lab4 - Сбор и аналитическая обработка информации о сетевом трафике</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Lab4</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page">
+ <span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./about.html">
+ <span class="menu-text">About</span></a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#задание-1-надите-утечку-данных-из-вашей-сети" id="toc-задание-1-надите-утечку-данных-из-вашей-сети" class="nav-link active" data-scroll-target="#задание-1-надите-утечку-данных-из-вашей-сети">Задание 1: Надите утечку данных из Вашей сети</a>
+  <ul class="collapse">
+  <li><a href="#импортируем-датасет" id="toc-импортируем-датасет" class="nav-link" data-scroll-target="#импортируем-датасет">Импортируем датасет</a></li>
+  <li><a href="#дадим-имена-признакам" id="toc-дадим-имена-признакам" class="nav-link" data-scroll-target="#дадим-имена-признакам">Дадим имена признакам</a></li>
+  <li><a href="#очистим-датасет-оставив-в-src-ip-адреса-только-нашего-предприятия" id="toc-очистим-датасет-оставив-в-src-ip-адреса-только-нашего-предприятия" class="nav-link" data-scroll-target="#очистим-датасет-оставив-в-src-ip-адреса-только-нашего-предприятия">Очистим датасет, оставив в src ip-адреса, только нашего предприятия</a></li>
+  <li><a href="#найдём-ip-адрес-и-максимальное-число-передаваемых-байтовответ-кто-злоумышленник-в-организации" id="toc-найдём-ip-адрес-и-максимальное-число-передаваемых-байтовответ-кто-злоумышленник-в-организации" class="nav-link" data-scroll-target="#найдём-ip-адрес-и-максимальное-число-передаваемых-байтовответ-кто-злоумышленник-в-организации">Найдём ip-адрес и максимальное число передаваемых байтов(ответ кто злоумышленник в организации)</a></li>
+  </ul></li>
+  <li><a href="#задание-2-надите-утечку-данных-2" id="toc-задание-2-надите-утечку-данных-2" class="nav-link" data-scroll-target="#задание-2-надите-утечку-данных-2">Задание 2: Надите утечку данных 2</a>
+  <ul class="collapse">
+  <li><a href="#удаление-ip-из-задания-1" id="toc-удаление-ip-из-задания-1" class="nav-link" data-scroll-target="#удаление-ip-из-задания-1">Удаление IP из задания 1</a></li>
+  <li><a href="#извлечение-часов" id="toc-извлечение-часов" class="nav-link" data-scroll-target="#извлечение-часов">Извлечение часов</a></li>
+  <li><a href="#удаление-na" id="toc-удаление-na" class="nav-link" data-scroll-target="#удаление-na">Удаление NA</a></li>
+  <li><a href="#извлекаем-часы-и-байты" id="toc-извлекаем-часы-и-байты" class="nav-link" data-scroll-target="#извлекаем-часы-и-байты">Извлекаем часы и байты</a></li>
+  <li><a href="#разбиваем-время-на-часы-минуты-и-секунды" id="toc-разбиваем-время-на-часы-минуты-и-секунды" class="nav-link" data-scroll-target="#разбиваем-время-на-часы-минуты-и-секунды">Разбиваем время на часы минуты и секунды</a></li>
+  <li><a href="#группируем-по-времени" id="toc-группируем-по-времени" class="nav-link" data-scroll-target="#группируем-по-времени">Группируем по времени</a></li>
+  <li><a href="#кластерезуем" id="toc-кластерезуем" class="nav-link" data-scroll-target="#кластерезуем">Кластерезуем</a></li>
+  <li><a href="#эксперимент-с-кол-вом-кластеров" id="toc-эксперимент-с-кол-вом-кластеров" class="nav-link" data-scroll-target="#эксперимент-с-кол-вом-кластеров">Эксперимент с кол-вом кластеров</a>
+  <ul class="collapse">
+  <li><a href="#графический-вид" id="toc-графический-вид" class="nav-link" data-scroll-target="#графический-вид">Графический вид</a></li>
+  <li><a href="#поиск-ip-в-072030" id="toc-поиск-ip-в-072030" class="nav-link" data-scroll-target="#поиск-ip-в-072030">Поиск IP в 07:20:30</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#задание-3-надите-утечку-данных-3" id="toc-задание-3-надите-утечку-данных-3" class="nav-link" data-scroll-target="#задание-3-надите-утечку-данных-3">Задание 3: Надите утечку данных 3</a>
+  <ul class="collapse">
+  <li><a href="#удаление-ip-из-задания-2" id="toc-удаление-ip-из-задания-2" class="nav-link" data-scroll-target="#удаление-ip-из-задания-2">Удаление IP из задания 2</a></li>
+  <li><a href="#извлекаем-часы-и-байты-1" id="toc-извлекаем-часы-и-байты-1" class="nav-link" data-scroll-target="#извлекаем-часы-и-байты-1">Извлекаем часы и байты</a></li>
+  <li><a href="#группируем-по-портам" id="toc-группируем-по-портам" class="nav-link" data-scroll-target="#группируем-по-портам">Группируем по портам</a></li>
+  <li><a href="#кластерезуем-1" id="toc-кластерезуем-1" class="nav-link" data-scroll-target="#кластерезуем-1">Кластерезуем</a></li>
+  <li><a href="#эксперимент-с-кол-вом-кластеров-1" id="toc-эксперимент-с-кол-вом-кластеров-1" class="nav-link" data-scroll-target="#эксперимент-с-кол-вом-кластеров-1">Эксперимент с кол-вом кластеров</a>
+  <ul class="collapse">
+  <li><a href="#графический-вид-1" id="toc-графический-вид-1" class="nav-link" data-scroll-target="#графический-вид-1">Графический вид</a></li>
+  <li><a href="#поиск-ip-по-39-порту" id="toc-поиск-ip-по-39-порту" class="nav-link" data-scroll-target="#поиск-ip-по-39-порту">Поиск IP по 39 порту</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Сбор и аналитическая обработка информации о сетевом трафике</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 13, 2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching packages ────────────────────────────────────── tidymodels 1.1.0 ──</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>✔ broom        1.0.4     ✔ recipes      1.0.6
+✔ dials        1.2.0     ✔ rsample      1.1.1
+✔ dplyr        1.1.2     ✔ tibble       3.2.1
+✔ ggplot2      3.4.2     ✔ tidyr        1.3.0
+✔ infer        1.0.4     ✔ tune         1.1.1
+✔ modeldata    1.1.0     ✔ workflows    1.1.3
+✔ parsnip      1.1.0     ✔ workflowsets 1.0.1
+✔ purrr        1.0.1     ✔ yardstick    1.2.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ───────────────────────────────────────── tidymodels_conflicts() ──
+✖ purrr::discard() masks scales::discard()
+✖ dplyr::filter()  masks stats::filter()
+✖ recipes::fixed() masks stringr::fixed()
+✖ dplyr::lag()     masks stats::lag()
+✖ recipes::step()  masks stats::step()
+• Dig deeper into tidy modeling with R at https://www.tmwr.org</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(arrow)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'arrow'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:utils':
+
+    timestamp</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="задание-1-надите-утечку-данных-из-вашей-сети" class="level1">
+<h1>Задание 1: Надите утечку данных из Вашей сети</h1>
+<p>Важнейшие документы с результатми нашей исследовательской деятельности в области создания вакцин скачиваются в виде больших заархивированных дампов. Один из хостов в нашей сети используется для пересылки этой информации – он пересылает гораздо больше информации на внешние ресурсы в Интернете, чем остальные компьютеры нашей сети. Определите его IP-адрес.</p>
+<section id="импортируем-датасет" class="level2">
+<h2 class="anchored" data-anchor-id="импортируем-датасет">Импортируем датасет</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>df_data <span class="ot">&lt;-</span> arrow<span class="sc">::</span><span class="fu">read_csv_arrow</span>(<span class="st">"../traffic_security.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="дадим-имена-признакам" class="level2">
+<h2 class="anchored" data-anchor-id="дадим-имена-признакам">Дадим имена признакам</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(df_data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'timestamp'</span>,<span class="st">'src'</span>,<span class="st">'dst'</span>,<span class="st">'port'</span>,<span class="st">'bytes'</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data,<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 5
+      timestamp src           dst           port bytes
+        &lt;int64&gt; &lt;chr&gt;         &lt;chr&gt;        &lt;int&gt; &lt;int&gt;
+1 1578326400005 16.79.101.100 12.48.65.39     92 11895
+2 1578326400007 18.43.118.103 14.51.30.86     27   898
+3 1578326400011 15.71.108.118 14.50.119.33    57  7496</code></pre>
+</div>
+</div>
+</section>
+<section id="очистим-датасет-оставив-в-src-ip-адреса-только-нашего-предприятия" class="level2">
+<h2 class="anchored" data-anchor-id="очистим-датасет-оставив-в-src-ip-адреса-только-нашего-предприятия">Очистим датасет, оставив в src ip-адреса, только нашего предприятия</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  df_data <span class="ot">&lt;-</span> df_data[df_data<span class="sc">$</span>src <span class="sc">&gt;</span> <span class="dv">11</span> <span class="sc">&amp;</span> df_data<span class="sc">$</span>src <span class="sc">&lt;</span> <span class="dv">15</span> <span class="sc">&amp;</span> df_data<span class="sc">$</span>dst <span class="sc">&lt;</span> <span class="dv">11</span> <span class="sc">|</span> df_data<span class="sc">$</span>dst <span class="sc">&gt;</span> <span class="dv">15</span>, ]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="найдём-ip-адрес-и-максимальное-число-передаваемых-байтовответ-кто-злоумышленник-в-организации" class="level2">
+<h2 class="anchored" data-anchor-id="найдём-ip-адрес-и-максимальное-число-передаваемых-байтовответ-кто-злоумышленник-в-организации">Найдём ip-адрес и максимальное число передаваемых байтов(ответ кто злоумышленник в организации)</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a> found_ip1 <span class="ot">&lt;-</span> df_data <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>            <span class="fu">group_by</span>(src) <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">summarise</span>(<span class="at">bytes =</span> <span class="fu">mean</span>(bytes)),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  found_ip1 <span class="ot">&lt;-</span> found_ip1[<span class="fu">which.max</span>(found_ip1<span class="sc">$</span>bytes),],</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(found_ip1) </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 2
+  src            bytes
+  &lt;chr&gt;          &lt;dbl&gt;
+1 13.37.84.125 192390.</code></pre>
+</div>
+</div>
+<p>Ответ: 13.37.84.125</p>
+</section>
+</section>
+<section id="задание-2-надите-утечку-данных-2" class="level1">
+<h1>Задание 2: Надите утечку данных 2</h1>
+<p>Другой атакующий установил автоматическую задачу в системном планировщике cron для экспорта содержимого внутренней wiki системы. Эта система генерирует большое количество траффика в нерабочие часы, больше чем остальные хосты. Определите IP этой системы. Известно, что ее IP адрес отличается от нарушителя из предыдущей задачи</p>
+<section id="удаление-ip-из-задания-1" class="level2">
+<h2 class="anchored" data-anchor-id="удаление-ip-из-задания-1">Удаление IP из задания 1</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  df_data <span class="ot">&lt;-</span> df_data[<span class="sc">!</span>(df_data<span class="sc">$</span>src<span class="sc">==</span><span class="st">"13.37.84.125"</span>),]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data,<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 5
+      timestamp src           dst          port bytes
+        &lt;int64&gt; &lt;chr&gt;         &lt;chr&gt;       &lt;int&gt; &lt;int&gt;
+1 1578326400012 14.33.30.103  15.24.31.23   115 20979
+2 1578326400018 12.46.104.126 16.25.76.33   123  1500
+3 1578326400021 12.43.98.93   18.85.31.68    79   979</code></pre>
+</div>
+</div>
+</section>
+<section id="извлечение-часов" class="level2">
+<h2 class="anchored" data-anchor-id="извлечение-часов">Извлечение часов</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  df_data<span class="sc">$</span>timestamp <span class="ot">&lt;-</span> <span class="fu">as.POSIXct</span>(df_data<span class="sc">$</span>timestamp<span class="sc">/</span><span class="dv">1000</span>, <span class="at">origin =</span> <span class="st">"1970-01-01"</span>, <span class="at">tz =</span> <span class="st">"GMT"</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data,<span class="dv">3</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 5
+  timestamp           src           dst          port bytes
+  &lt;dttm&gt;              &lt;chr&gt;         &lt;chr&gt;       &lt;int&gt; &lt;int&gt;
+1 2020-01-06 16:00:00 14.33.30.103  15.24.31.23   115 20979
+2 2020-01-06 16:00:00 12.46.104.126 16.25.76.33   123  1500
+3 2020-01-06 16:00:00 12.43.98.93   18.85.31.68    79   979</code></pre>
+</div>
+</div>
+</section>
+<section id="удаление-na" class="level2">
+<h2 class="anchored" data-anchor-id="удаление-na">Удаление NA</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  df_data <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(df_data)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="извлекаем-часы-и-байты" class="level2">
+<h2 class="anchored" data-anchor-id="извлекаем-часы-и-байты">Извлекаем часы и байты</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  df_data_hours_bytes <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">hours =</span> <span class="fu">format</span>(<span class="fu">as.POSIXct</span>(df_data<span class="sc">$</span>timestamp), <span class="at">format =</span> <span class="st">"%H%M%S"</span>),</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>                                <span class="at">bytes =</span> df_data<span class="sc">$</span>bytes)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data_hours_bytes,<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 2
+  hours  bytes
+  &lt;chr&gt;  &lt;int&gt;
+1 160000 20979
+2 160000  1500
+3 160000   979</code></pre>
+</div>
+</div>
+</section>
+<section id="разбиваем-время-на-часы-минуты-и-секунды" class="level2">
+<h2 class="anchored" data-anchor-id="разбиваем-время-на-часы-минуты-и-секунды">Разбиваем время на часы минуты и секунды</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  df_data<span class="sc">$</span>hour <span class="ot">&lt;-</span> <span class="fu">with</span> (df_data,<span class="fu">format</span>(<span class="fu">as.POSIXct</span>(df_data<span class="sc">$</span>timestamp), <span class="at">format =</span> <span class="st">"%H"</span>)),</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  df_data<span class="sc">$</span>minutes <span class="ot">&lt;-</span> <span class="fu">with</span> (df_data,<span class="fu">format</span>(<span class="fu">as.POSIXct</span>(df_data<span class="sc">$</span>timestamp), <span class="at">format =</span> <span class="st">"%M"</span>)),</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  df_data<span class="sc">$</span>sec <span class="ot">&lt;-</span> <span class="fu">with</span> (df_data,<span class="fu">format</span>(<span class="fu">as.POSIXct</span>(df_data<span class="sc">$</span>timestamp), <span class="at">format =</span> <span class="st">"%S"</span>))</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data,<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 8
+  timestamp           src           dst          port bytes hour  minutes sec  
+  &lt;dttm&gt;              &lt;chr&gt;         &lt;chr&gt;       &lt;int&gt; &lt;int&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;
+1 2020-01-06 16:00:00 14.33.30.103  15.24.31.23   115 20979 16    00      00   
+2 2020-01-06 16:00:00 12.46.104.126 16.25.76.33   123  1500 16    00      00   
+3 2020-01-06 16:00:00 12.43.98.93   18.85.31.68    79   979 16    00      00   </code></pre>
+</div>
+</div>
+</section>
+<section id="группируем-по-времени" class="level2">
+<h2 class="anchored" data-anchor-id="группируем-по-времени">Группируем по времени</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>df_data_hours_bytes <span class="ot">&lt;-</span> df_data_hours_bytes <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>            <span class="fu">group_by</span>(hours) <span class="sc">%&gt;%</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">summarise</span>(<span class="at">bytes =</span> <span class="fu">mean</span>(bytes))</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data_hours_bytes,<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 2
+  hours   bytes
+  &lt;chr&gt;   &lt;dbl&gt;
+1 000000 24886.
+2 000001 14100.
+3 000002 20128.</code></pre>
+</div>
+</div>
+</section>
+<section id="кластерезуем" class="level2">
+<h2 class="anchored" data-anchor-id="кластерезуем">Кластерезуем</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  kclust <span class="ot">&lt;-</span> <span class="fu">kmeans</span>(<span class="fu">na.omit</span>(df_data_hours_bytes), <span class="at">centers =</span> <span class="dv">2</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="эксперимент-с-кол-вом-кластеров" class="level2">
+<h2 class="anchored" data-anchor-id="эксперимент-с-кол-вом-кластеров">Эксперимент с кол-вом кластеров</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  kclusts <span class="ot">&lt;-</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">k =</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">kclust =</span> <span class="fu">map</span>(k, <span class="sc">~</span><span class="fu">kmeans</span>(df_data_hours_bytes, .x)),</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">tidied =</span> <span class="fu">map</span>(kclust, tidy),</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">glanced =</span> <span class="fu">map</span>(kclust, glance),</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">augmented =</span> <span class="fu">map</span>(kclust, augment, df_data_hours_bytes)</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  clusters <span class="ot">&lt;-</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    kclusts <span class="sc">%&gt;%</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(tidied)),</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  assigments <span class="ot">&lt;-</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    kclusts <span class="sc">%&gt;%</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(augmented)),</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  clusterings <span class="ot">&lt;-</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    kclusts <span class="sc">%&gt;%</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(glanced))</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="графический-вид" class="level3">
+<h3 class="anchored" data-anchor-id="графический-вид">Графический вид</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>plot1 <span class="ot">&lt;-</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(assigments, <span class="fu">aes</span>(<span class="at">x =</span> hours, <span class="at">y =</span> bytes)) <span class="sc">+</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> .cluster), <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> k)</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>plot1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="поиск-ip-в-072030" class="level3">
+<h3 class="anchored" data-anchor-id="поиск-ip-в-072030">Поиск IP в 07:20:30</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>df_data_hours_bytes <span class="ot">&lt;-</span> df_data[df_data<span class="sc">$</span>hour<span class="sc">==</span><span class="st">"07"</span> <span class="sc">&amp;</span> df_data<span class="sc">$</span>minutes<span class="sc">==</span><span class="st">"20"</span> <span class="sc">&amp;</span> df_data<span class="sc">$</span>sec<span class="sc">==</span><span class="st">"30"</span>,]</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>found_ip2 <span class="ot">&lt;-</span> df_data_hours_bytes <span class="sc">%&gt;%</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>          <span class="fu">group_by</span>(src) <span class="sc">%&gt;%</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>          <span class="fu">summarise</span>(<span class="at">bytes =</span> <span class="fu">mean</span>(bytes))</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>found_ip2 <span class="ot">&lt;-</span> found_ip2[<span class="fu">which.max</span>(found_ip2<span class="sc">$</span>bytes),]</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(found_ip2) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 2
+  src           bytes
+  &lt;chr&gt;         &lt;dbl&gt;
+1 12.55.77.96 656178.</code></pre>
+</div>
+</div>
+<p>Ответ: 12.55.77.96</p>
+</section>
+</section>
+</section>
+<section id="задание-3-надите-утечку-данных-3" class="level1">
+<h1>Задание 3: Надите утечку данных 3</h1>
+<p>Еще один нарушитель собирает содержимое электронной почты и отправляет в Интернет используя порт, который обычно используется для другого типа трафика. Атакующий пересылает большое количество информации используя этот порт, которое нехарактерно для других хостов, использующих этот номер порта. Определите IP этой системы. Известно, что ее IP адрес отличается от нарушителей из предыдущих задач.</p>
+<section id="удаление-ip-из-задания-2" class="level2">
+<h2 class="anchored" data-anchor-id="удаление-ip-из-задания-2">Удаление IP из задания 2</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  df_data <span class="ot">&lt;-</span> df_data[<span class="sc">!</span>(df_data<span class="sc">$</span>src<span class="sc">==</span><span class="st">"12.55.77.96"</span>),]</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data,<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 8
+  timestamp           src           dst          port bytes hour  minutes sec  
+  &lt;dttm&gt;              &lt;chr&gt;         &lt;chr&gt;       &lt;int&gt; &lt;int&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;
+1 2020-01-06 16:00:00 14.33.30.103  15.24.31.23   115 20979 16    00      00   
+2 2020-01-06 16:00:00 12.46.104.126 16.25.76.33   123  1500 16    00      00   
+3 2020-01-06 16:00:00 12.43.98.93   18.85.31.68    79   979 16    00      00   </code></pre>
+</div>
+</div>
+</section>
+<section id="извлекаем-часы-и-байты-1" class="level2">
+<h2 class="anchored" data-anchor-id="извлекаем-часы-и-байты-1">Извлекаем часы и байты</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  df_data_ports_bytes <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">src =</span> df_data<span class="sc">$</span>src,</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>                                <span class="at">port =</span> df_data<span class="sc">$</span>port,</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>                                <span class="at">bytes =</span> df_data<span class="sc">$</span>bytes)</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data_ports_bytes,<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 3
+  src            port bytes
+  &lt;chr&gt;         &lt;int&gt; &lt;int&gt;
+1 14.33.30.103    115 20979
+2 12.46.104.126   123  1500
+3 12.43.98.93      79   979</code></pre>
+</div>
+</div>
+</section>
+<section id="группируем-по-портам" class="level2">
+<h2 class="anchored" data-anchor-id="группируем-по-портам">Группируем по портам</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>df_data_ports_bytes <span class="ot">&lt;-</span> df_data_ports_bytes <span class="sc">%&gt;%</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>            <span class="fu">group_by</span>(src, port) <span class="sc">%&gt;%</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">summarise</span>(<span class="at">bytes =</span> <span class="fu">mean</span>(bytes)),</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>df_data_ports_bytes <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">port =</span> df_data_ports_bytes<span class="sc">$</span>port,</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>                              <span class="at">bytes =</span> df_data_ports_bytes<span class="sc">$</span>bytes)</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'src'. You can override using the `.groups`
+argument.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_data_ports_bytes,<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 2
+   port bytes
+  &lt;int&gt; &lt;dbl&gt;
+1    22  995.
+2    23 1000.
+3    25   42 </code></pre>
+</div>
+</div>
+</section>
+<section id="кластерезуем-1" class="level2">
+<h2 class="anchored" data-anchor-id="кластерезуем-1">Кластерезуем</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  kclust <span class="ot">&lt;-</span> <span class="fu">kmeans</span>(<span class="fu">na.omit</span>(df_data_ports_bytes), <span class="at">centers =</span> <span class="dv">2</span>)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="эксперимент-с-кол-вом-кластеров-1" class="level2">
+<h2 class="anchored" data-anchor-id="эксперимент-с-кол-вом-кластеров-1">Эксперимент с кол-вом кластеров</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  kclusts <span class="ot">&lt;-</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tibble</span>(<span class="at">k =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>      <span class="at">kclust =</span> <span class="fu">map</span>(k, <span class="sc">~</span><span class="fu">kmeans</span>(df_data_ports_bytes, .x)),</span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">tidied =</span> <span class="fu">map</span>(kclust, tidy),</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">glanced =</span> <span class="fu">map</span>(kclust, glance),</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">augmented =</span> <span class="fu">map</span>(kclust, augment, df_data_ports_bytes)</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  clusters <span class="ot">&lt;-</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    kclusts <span class="sc">%&gt;%</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(tidied)),</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  assigments <span class="ot">&lt;-</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    kclusts <span class="sc">%&gt;%</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(augmented)),</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  clusterings <span class="ot">&lt;-</span></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>    kclusts <span class="sc">%&gt;%</span></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">unnest</span>(<span class="at">cols =</span> <span class="fu">c</span>(glanced))</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="графический-вид-1" class="level3">
+<h3 class="anchored" data-anchor-id="графический-вид-1">Графический вид</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span>opts_chunk<span class="sc">$</span><span class="fu">set</span>(</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>plot1 <span class="ot">&lt;-</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(assigments, <span class="fu">aes</span>(<span class="at">x =</span> port, <span class="at">y =</span> bytes)) <span class="sc">+</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> .cluster), <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> k)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>plot1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="поиск-ip-по-39-порту" class="level3">
+<h3 class="anchored" data-anchor-id="поиск-ip-по-39-порту">Поиск IP по 39 порту</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>df_data_ports_bytes <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">src =</span> df_data<span class="sc">$</span>src,</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">port =</span> df_data<span class="sc">$</span>port,</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">bytes =</span> df_data<span class="sc">$</span>bytes)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>df_data_ports_bytes <span class="ot">&lt;-</span> df_data_ports_bytes <span class="sc">%&gt;%</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>            <span class="fu">group_by</span>(src, port) <span class="sc">%&gt;%</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>            <span class="fu">summarise</span>(<span class="at">bytes =</span> <span class="fu">mean</span>(bytes))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'src'. You can override using the `.groups`
+argument.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>df_data_ports_bytes <span class="ot">&lt;-</span> df_data_ports_bytes[df_data_ports_bytes<span class="sc">$</span>port<span class="sc">==</span><span class="st">"39"</span>,]</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>found_ip3 <span class="ot">&lt;-</span> df_data_ports_bytes <span class="sc">%&gt;%</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>          <span class="fu">group_by</span>(src, port) <span class="sc">%&gt;%</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>          <span class="fu">summarise</span>(<span class="at">bytes =</span> <span class="fu">mean</span>(bytes))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`summarise()` has grouped output by 'src'. You can override using the `.groups`
+argument.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>found_ip3 <span class="ot">&lt;-</span> found_ip3[<span class="fu">which.max</span>(found_ip3<span class="sc">$</span>bytes),]</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(found_ip3) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+# Groups:   src [1]
+  src           port  bytes
+  &lt;chr&gt;        &lt;int&gt;  &lt;dbl&gt;
+1 13.36.102.77    39 50597.</code></pre>
+</div>
+</div>
+<p>Ответ: 13.36.102.77</p>
+
+
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

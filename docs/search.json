@@ -1,0 +1,135 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "",
+    "text": "library(stringr)\nlibrary(tidymodels)\n\n── Attaching packages ────────────────────────────────────── tidymodels 1.1.0 ──\n\n\n✔ broom        1.0.4     ✔ recipes      1.0.6\n✔ dials        1.2.0     ✔ rsample      1.1.1\n✔ dplyr        1.1.2     ✔ tibble       3.2.1\n✔ ggplot2      3.4.2     ✔ tidyr        1.3.0\n✔ infer        1.0.4     ✔ tune         1.1.1\n✔ modeldata    1.1.0     ✔ workflows    1.1.3\n✔ parsnip      1.1.0     ✔ workflowsets 1.0.1\n✔ purrr        1.0.1     ✔ yardstick    1.2.0\n\n\n── Conflicts ───────────────────────────────────────── tidymodels_conflicts() ──\n✖ purrr::discard() masks scales::discard()\n✖ dplyr::filter()  masks stats::filter()\n✖ recipes::fixed() masks stringr::fixed()\n✖ dplyr::lag()     masks stats::lag()\n✖ recipes::step()  masks stats::step()\n• Dig deeper into tidy modeling with R at https://www.tmwr.org\n\nlibrary(arrow)\n\n\nAttaching package: 'arrow'\n\n\nThe following object is masked from 'package:utils':\n\n    timestamp\n\nlibrary(dplyr)\nlibrary(ggplot2)"
+  },
+  {
+    "objectID": "index.html#импортируем-датасет",
+    "href": "index.html#импортируем-датасет",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Импортируем датасет",
+    "text": "Импортируем датасет\n\ndf_data <- arrow::read_csv_arrow(\"../traffic_security.csv\")"
+  },
+  {
+    "objectID": "index.html#дадим-имена-признакам",
+    "href": "index.html#дадим-имена-признакам",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Дадим имена признакам",
+    "text": "Дадим имена признакам\n\ncolnames(df_data) <- c('timestamp','src','dst','port','bytes')\nhead(df_data,3)\n\n# A tibble: 3 × 5\n      timestamp src           dst           port bytes\n        <int64> <chr>         <chr>        <int> <int>\n1 1578326400005 16.79.101.100 12.48.65.39     92 11895\n2 1578326400007 18.43.118.103 14.51.30.86     27   898\n3 1578326400011 15.71.108.118 14.50.119.33    57  7496"
+  },
+  {
+    "objectID": "index.html#очистим-датасет-оставив-в-src-ip-адреса-только-нашего-предприятия",
+    "href": "index.html#очистим-датасет-оставив-в-src-ip-адреса-только-нашего-предприятия",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Очистим датасет, оставив в src ip-адреса, только нашего предприятия",
+    "text": "Очистим датасет, оставив в src ip-адреса, только нашего предприятия\n\nknitr::opts_chunk$set(\n  df_data <- df_data[df_data$src > 11 & df_data$src < 15 & df_data$dst < 11 | df_data$dst > 15, ]\n)"
+  },
+  {
+    "objectID": "index.html#найдём-ip-адрес-и-максимальное-число-передаваемых-байтовответ-кто-злоумышленник-в-организации",
+    "href": "index.html#найдём-ip-адрес-и-максимальное-число-передаваемых-байтовответ-кто-злоумышленник-в-организации",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Найдём ip-адрес и максимальное число передаваемых байтов(ответ кто злоумышленник в организации)",
+    "text": "Найдём ip-адрес и максимальное число передаваемых байтов(ответ кто злоумышленник в организации)\n\nknitr::opts_chunk$set(\n found_ip1 <- df_data %>%\n            group_by(src) %>%\n            summarise(bytes = mean(bytes)),\n  found_ip1 <- found_ip1[which.max(found_ip1$bytes),],\n  print(found_ip1) \n)\n\n# A tibble: 1 × 2\n  src            bytes\n  <chr>          <dbl>\n1 13.37.84.125 192390.\n\n\nОтвет: 13.37.84.125"
+  },
+  {
+    "objectID": "index.html#удаление-ip-из-задания-1",
+    "href": "index.html#удаление-ip-из-задания-1",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Удаление IP из задания 1",
+    "text": "Удаление IP из задания 1\n\nknitr::opts_chunk$set(\n  df_data <- df_data[!(df_data$src==\"13.37.84.125\"),]\n)\nhead(df_data,3)\n\n# A tibble: 3 × 5\n      timestamp src           dst          port bytes\n        <int64> <chr>         <chr>       <int> <int>\n1 1578326400012 14.33.30.103  15.24.31.23   115 20979\n2 1578326400018 12.46.104.126 16.25.76.33   123  1500\n3 1578326400021 12.43.98.93   18.85.31.68    79   979"
+  },
+  {
+    "objectID": "index.html#извлечение-часов",
+    "href": "index.html#извлечение-часов",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Извлечение часов",
+    "text": "Извлечение часов\n\nknitr::opts_chunk$set(\n  df_data$timestamp <- as.POSIXct(df_data$timestamp/1000, origin = \"1970-01-01\", tz = \"GMT\")\n)\nhead(df_data,3) \n\n# A tibble: 3 × 5\n  timestamp           src           dst          port bytes\n  <dttm>              <chr>         <chr>       <int> <int>\n1 2020-01-06 16:00:00 14.33.30.103  15.24.31.23   115 20979\n2 2020-01-06 16:00:00 12.46.104.126 16.25.76.33   123  1500\n3 2020-01-06 16:00:00 12.43.98.93   18.85.31.68    79   979"
+  },
+  {
+    "objectID": "index.html#удаление-na",
+    "href": "index.html#удаление-na",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Удаление NA",
+    "text": "Удаление NA\n\nknitr::opts_chunk$set(\n  df_data <- na.omit(df_data)\n)"
+  },
+  {
+    "objectID": "index.html#извлекаем-часы-и-байты",
+    "href": "index.html#извлекаем-часы-и-байты",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Извлекаем часы и байты",
+    "text": "Извлекаем часы и байты\n\nknitr::opts_chunk$set(\n  df_data_hours_bytes <- tibble(hours = format(as.POSIXct(df_data$timestamp), format = \"%H%M%S\"),\n                                bytes = df_data$bytes)\n)\nhead(df_data_hours_bytes,3)\n\n# A tibble: 3 × 2\n  hours  bytes\n  <chr>  <int>\n1 160000 20979\n2 160000  1500\n3 160000   979"
+  },
+  {
+    "objectID": "index.html#разбиваем-время-на-часы-минуты-и-секунды",
+    "href": "index.html#разбиваем-время-на-часы-минуты-и-секунды",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Разбиваем время на часы минуты и секунды",
+    "text": "Разбиваем время на часы минуты и секунды\n\nknitr::opts_chunk$set(\n  df_data$hour <- with (df_data,format(as.POSIXct(df_data$timestamp), format = \"%H\")),\n  df_data$minutes <- with (df_data,format(as.POSIXct(df_data$timestamp), format = \"%M\")),\n  df_data$sec <- with (df_data,format(as.POSIXct(df_data$timestamp), format = \"%S\"))\n)\nhead(df_data,3)\n\n# A tibble: 3 × 8\n  timestamp           src           dst          port bytes hour  minutes sec  \n  <dttm>              <chr>         <chr>       <int> <int> <chr> <chr>   <chr>\n1 2020-01-06 16:00:00 14.33.30.103  15.24.31.23   115 20979 16    00      00   \n2 2020-01-06 16:00:00 12.46.104.126 16.25.76.33   123  1500 16    00      00   \n3 2020-01-06 16:00:00 12.43.98.93   18.85.31.68    79   979 16    00      00"
+  },
+  {
+    "objectID": "index.html#группируем-по-времени",
+    "href": "index.html#группируем-по-времени",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Группируем по времени",
+    "text": "Группируем по времени\n\nknitr::opts_chunk$set(\ndf_data_hours_bytes <- df_data_hours_bytes %>%\n            group_by(hours) %>%\n            summarise(bytes = mean(bytes))\n)\nhead(df_data_hours_bytes,3)\n\n# A tibble: 3 × 2\n  hours   bytes\n  <chr>   <dbl>\n1 000000 24886.\n2 000001 14100.\n3 000002 20128."
+  },
+  {
+    "objectID": "index.html#кластерезуем",
+    "href": "index.html#кластерезуем",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Кластерезуем",
+    "text": "Кластерезуем\n\nknitr::opts_chunk$set(\n  kclust <- kmeans(na.omit(df_data_hours_bytes), centers = 2)\n)"
+  },
+  {
+    "objectID": "index.html#эксперимент-с-кол-вом-кластеров",
+    "href": "index.html#эксперимент-с-кол-вом-кластеров",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Эксперимент с кол-вом кластеров",
+    "text": "Эксперимент с кол-вом кластеров\n\nknitr::opts_chunk$set(\n  kclusts <-\n    tibble(k = 2) %>%\n    mutate(\n      kclust = map(k, ~kmeans(df_data_hours_bytes, .x)),\n      tidied = map(kclust, tidy),\n      glanced = map(kclust, glance),\n      augmented = map(kclust, augment, df_data_hours_bytes)\n    )\n)\n\n\nknitr::opts_chunk$set(\n  clusters <-\n    kclusts %>%\n    unnest(cols = c(tidied)),\n  \n  assigments <-\n    kclusts %>%\n    unnest(cols = c(augmented)),\n    \n  clusterings <-\n    kclusts %>%\n    unnest(cols = c(glanced))\n)\n\n\nГрафический вид\n\nknitr::opts_chunk$set(\nplot1 <-\n  ggplot(assigments, aes(x = hours, y = bytes)) +\n  geom_point(aes(color = .cluster), alpha = 0.8) +\n  facet_wrap(~ k)\n)\nplot1\n\n\n\n\n\n\nПоиск IP в 07:20:30\n\ndf_data_hours_bytes <- df_data[df_data$hour==\"07\" & df_data$minutes==\"20\" & df_data$sec==\"30\",]\n\nfound_ip2 <- df_data_hours_bytes %>%\n          group_by(src) %>%\n          summarise(bytes = mean(bytes))\n\nfound_ip2 <- found_ip2[which.max(found_ip2$bytes),]\n\nprint(found_ip2) \n\n# A tibble: 1 × 2\n  src           bytes\n  <chr>         <dbl>\n1 12.55.77.96 656178.\n\n\nОтвет: 12.55.77.96"
+  },
+  {
+    "objectID": "index.html#удаление-ip-из-задания-2",
+    "href": "index.html#удаление-ip-из-задания-2",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Удаление IP из задания 2",
+    "text": "Удаление IP из задания 2\n\nknitr::opts_chunk$set(\n  df_data <- df_data[!(df_data$src==\"12.55.77.96\"),]\n)\nhead(df_data,3)\n\n# A tibble: 3 × 8\n  timestamp           src           dst          port bytes hour  minutes sec  \n  <dttm>              <chr>         <chr>       <int> <int> <chr> <chr>   <chr>\n1 2020-01-06 16:00:00 14.33.30.103  15.24.31.23   115 20979 16    00      00   \n2 2020-01-06 16:00:00 12.46.104.126 16.25.76.33   123  1500 16    00      00   \n3 2020-01-06 16:00:00 12.43.98.93   18.85.31.68    79   979 16    00      00"
+  },
+  {
+    "objectID": "index.html#извлекаем-часы-и-байты-1",
+    "href": "index.html#извлекаем-часы-и-байты-1",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Извлекаем часы и байты",
+    "text": "Извлекаем часы и байты\n\nknitr::opts_chunk$set(\n  df_data_ports_bytes <- tibble(src = df_data$src,\n                                port = df_data$port,\n                                bytes = df_data$bytes)\n  \n)\nhead(df_data_ports_bytes,3)\n\n# A tibble: 3 × 3\n  src            port bytes\n  <chr>         <int> <int>\n1 14.33.30.103    115 20979\n2 12.46.104.126   123  1500\n3 12.43.98.93      79   979"
+  },
+  {
+    "objectID": "index.html#группируем-по-портам",
+    "href": "index.html#группируем-по-портам",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Группируем по портам",
+    "text": "Группируем по портам\n\nknitr::opts_chunk$set(\ndf_data_ports_bytes <- df_data_ports_bytes %>%\n            group_by(src, port) %>%\n            summarise(bytes = mean(bytes)),\n\ndf_data_ports_bytes <- tibble(port = df_data_ports_bytes$port,\n                              bytes = df_data_ports_bytes$bytes)\n)\n\n`summarise()` has grouped output by 'src'. You can override using the `.groups`\nargument.\n\nhead(df_data_ports_bytes,3)\n\n# A tibble: 3 × 2\n   port bytes\n  <int> <dbl>\n1    22  995.\n2    23 1000.\n3    25   42"
+  },
+  {
+    "objectID": "index.html#кластерезуем-1",
+    "href": "index.html#кластерезуем-1",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Кластерезуем",
+    "text": "Кластерезуем\n\nknitr::opts_chunk$set(\n  kclust <- kmeans(na.omit(df_data_ports_bytes), centers = 2)\n)"
+  },
+  {
+    "objectID": "index.html#эксперимент-с-кол-вом-кластеров-1",
+    "href": "index.html#эксперимент-с-кол-вом-кластеров-1",
+    "title": "Сбор и аналитическая обработка информации о сетевом трафике",
+    "section": "Эксперимент с кол-вом кластеров",
+    "text": "Эксперимент с кол-вом кластеров\n\nknitr::opts_chunk$set(\n  kclusts <-\n    tibble(k = 1) %>%\n    mutate(\n      kclust = map(k, ~kmeans(df_data_ports_bytes, .x)),\n      tidied = map(kclust, tidy),\n      glanced = map(kclust, glance),\n      augmented = map(kclust, augment, df_data_ports_bytes)\n    )\n)\n\n\nknitr::opts_chunk$set(\n  clusters <-\n    kclusts %>%\n    unnest(cols = c(tidied)),\n  \n  assigments <-\n    kclusts %>%\n    unnest(cols = c(augmented)),\n    \n  clusterings <-\n    kclusts %>%\n    unnest(cols = c(glanced))\n)\n\n\nГрафический вид\n\nknitr::opts_chunk$set(\nplot1 <-\n  ggplot(assigments, aes(x = port, y = bytes)) +\n  geom_point(aes(color = .cluster), alpha = 0.8) +\n  facet_wrap(~ k)\n)\nplot1\n\n\n\n\n\n\nПоиск IP по 39 порту\n\ndf_data_ports_bytes <- tibble(src = df_data$src,\n                              port = df_data$port,\n                              bytes = df_data$bytes)\n\ndf_data_ports_bytes <- df_data_ports_bytes %>%\n            group_by(src, port) %>%\n            summarise(bytes = mean(bytes))\n\n`summarise()` has grouped output by 'src'. You can override using the `.groups`\nargument.\n\ndf_data_ports_bytes <- df_data_ports_bytes[df_data_ports_bytes$port==\"39\",]\n\nfound_ip3 <- df_data_ports_bytes %>%\n          group_by(src, port) %>%\n          summarise(bytes = mean(bytes))\n\n`summarise()` has grouped output by 'src'. You can override using the `.groups`\nargument.\n\nfound_ip3 <- found_ip3[which.max(found_ip3$bytes),]\n\nprint(found_ip3) \n\n# A tibble: 1 × 3\n# Groups:   src [1]\n  src           port  bytes\n  <chr>        <int>  <dbl>\n1 13.36.102.77    39 50597.\n\n\nОтвет: 13.36.102.77"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  }
+]
